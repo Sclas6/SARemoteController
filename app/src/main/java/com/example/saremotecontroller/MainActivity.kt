@@ -117,6 +117,8 @@ class MainActivity : AppCompatActivity() {
         offlineButton.setOnClickListener {
             if(bleService!=null&& bleService!!.getStatus()){
                 //Toast.makeText(this, "接続されています", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, bleService?.getDevice(), Toast.LENGTH_SHORT).show()
+                bleService?.writeValue(byteArrayOf(0x02,0x01,0x0f))
             }else {
                 Toast.makeText(this, "BlueToothデバイスに接続してください", Toast.LENGTH_SHORT).show()
             }
