@@ -9,4 +9,6 @@
     <string name="userName">aaa</string>
     <string name="passWard">Text Box 2</string>
     <string name="not_support">ご利用のデバイスはBluetoothをサポートしていません</string>
+    <string name="max_speed_100">Max Speed: 100%</string>
+    <string name="rotation_speed_0">Rotation Speed:   0%</string>
 </resources>
