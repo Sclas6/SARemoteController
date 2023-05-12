@@ -23,9 +23,12 @@ class ButtonAdapter(private val buttonList: List<ButtonData>, private val listen
     override fun onBindViewHolder(holder: ButtonViewHolder, position: Int) {
         val buttonData = buttonList[position]
         holder.button.text = buttonData.name
+        if(buttonData.num>=2){
+            holder.button.isEnabled=false
+        }
         holder.button.setOnClickListener {
             //listener.onButtonClick(buttonData.num.toString())
-            listener.onButtonClick(String.format("join %s",buttonData.name))
+            listener.onButtonClick(String.format("%s %s %d",buttonData.name,buttonData.user,buttonData.num))
         }
     }
 

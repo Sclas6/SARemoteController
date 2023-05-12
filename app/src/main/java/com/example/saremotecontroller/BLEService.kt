@@ -251,7 +251,6 @@ class BLEService() : Service() {
         Log.d(TAG,"Service Created")
     }
 
-
     override fun onBind(intent: Intent): IBinder? {
         return binder
     }

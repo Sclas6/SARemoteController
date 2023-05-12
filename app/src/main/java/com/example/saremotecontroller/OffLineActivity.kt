@@ -2,11 +2,13 @@ package com.example.saremotecontroller
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.view.MotionEvent
 import android.widget.ImageView
 import android.widget.ProgressBar
@@ -19,12 +21,6 @@ import kotlin.math.*
 const val MODE_RIGHT = 0
 const val MODE_LEFT = 1
 class OffLineActivity : AppCompatActivity() {
-
-    var prevX=0f
-    var prevY=0f
-    var prevTime=0L
-    var i = 1
-    var maxSpeed = 1.0
 
     private lateinit var seekbarCtr: SeekBar
     private lateinit var seekbarMax: SeekBar
@@ -100,17 +96,24 @@ class OffLineActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar) {}
         })
     }
+    private var prevX=0f
+    private var prevY=0f
+    var mode = 0
+    private val location = IntArray(2)
+    var prevTime=0L
+    var i = 0
+    var maxSpeed = 1.0
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         when (event?.action) {
             MotionEvent.ACTION_DOWN -> {
-                val x = event.x.toInt()-sensor.width/2
-                val y = sensor.height/2-event.y.toInt()
-
+                sensor.getLocationOnScreen(location)
+                val cX = sensor.width/2
+                val cY = sensor.height/2
+                prevX = event.x - location[0] - cX
+                prevY = cY - event.y + location[1]
                 //testButton.text= String.format("x: %d, y: %d",x,y)
             }
             MotionEvent.ACTION_MOVE ->{
-                i++
-                val location = IntArray(2)
                 sensor.getLocationOnScreen(location)
                 val cX = sensor.width/2
                 val cY = sensor.height/2
@@ -124,24 +127,26 @@ class OffLineActivity : AppCompatActivity() {
                         val time = System.currentTimeMillis()
                         val distanceX = x - prevX
                         val distanceY = y - prevY
-                        var mode = 0
-                        mode = if(distanceX>=0){
-                            if(y>=0){
-                                MODE_RIGHT
+                        if(i==0){
+                            Log.d(TAG,"Mode Change")
+                            mode = if(distanceX>=0){
+                                if(y>=0){
+                                    MODE_RIGHT
+                                }else{
+                                    MODE_LEFT
+                                }
                             }else{
-                                MODE_LEFT
-                            }
-                        }else{
-                            if(y>=0){
-                                MODE_LEFT
-                            }else{
-                                MODE_RIGHT
+                                if(y>=0){
+                                    MODE_LEFT
+                                }else{
+                                    MODE_RIGHT
+                                }
                             }
                         }
                         val distance =
                             sqrt((distanceX * distanceX).toDouble() + (distanceY * distanceY).toDouble())
                         val deltaTime = time - prevTime
-                        var speed = distance / deltaTime
+                        var speed = distance /100// deltaTime
                         speed *= when {
                             r < 5000 -> 0.9
                             r < 12000 -> 0.8
@@ -158,13 +163,11 @@ class OffLineActivity : AppCompatActivity() {
                         prevX = x
                         prevY = y
                         prevTime = time
-                        //testButton.text = String.format("%s,%s", ((speed)*100).toInt().toString(), mode.toString())
-                        //testButton.text = String.format("%s,%s", r.toInt().toString(), circle.toString())
-                        //testButton.text = i.toString()
                     }else{
                         sendCrl(0,0,0)
                     }
                 }
+                i++
 
             }
             MotionEvent.ACTION_UP ->{

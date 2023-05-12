@@ -21,10 +21,14 @@
         android:theme="@style/Theme.SARemoteController"
         tools:targetApi="31">
         <activity
+            android:name=".OnlineAtkActivity"
+            android:exported="false" />
+        <activity
             android:name=".OffLineActivity"
             android:exported="false" />
 
         <service android:name=".BLEService" />
+        <service android:name=".ATKService" />
 
         <activity
             android:name=".RoomList"

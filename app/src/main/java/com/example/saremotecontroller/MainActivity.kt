@@ -26,6 +26,7 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.io.OutputStream
 import java.io.PrintWriter
+import java.net.InetSocketAddress
 import java.net.Socket
 import java.security.AccessController.getContext
 
@@ -38,6 +39,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var button: Button
     private var bleService: BLEService? = null
+    private var msgMng: MsgManager = MsgManager()
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -93,17 +95,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         connectButton.setOnClickListener {
-            if(bleService!=null&& bleService!!.getStatus()){
+            //if(bleService!=null&& bleService!!.getStatus()){
+            if(true){
                 Thread {
+                    Log.d(TAG,"aaa")
                     val message = connectToServer()
-                    //val message = if (connected) "Connected to server" else "Failed to connect to server"
-                    //Toast.makeText(this@MainActivity, message.contentToString(), Toast.LENGTH_SHORT).show()
+                    Log.d(TAG,"bbb")
                     Handler(Looper.getMainLooper()).post {
-                        //Toast.makeText(this@MainActivity, message.contentToString(), Toast.LENGTH_SHORT).show()
                         if (message[0] != "Failed to connect to server") {
                             val intent = Intent(this, RoomList::class.java)
                             intent.putExtra("roomList", message)
-                            //intent.putExtras("ble",bleService)
                             startActivity(intent)
                         }else{
                             Toast.makeText(this@MainActivity, "サーバへの接続に失敗しました", Toast.LENGTH_SHORT).show()
@@ -119,7 +120,6 @@ class MainActivity : AppCompatActivity() {
                 //Toast.makeText(this, "接続されています", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, OffLineActivity::class.java)
                 startActivity(intent)
-
             //}else {
                 //Toast.makeText(this, "BlueToothデバイスに接続してください", Toast.LENGTH_SHORT).show()
             //}
@@ -131,43 +131,24 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "Service bound.")
         })
     }
-
-
-
     private fun connectToServer(): Array<String> {
         try {
-            val socket = Socket("192.168.11.14", 19071)
+            //val socket = Socket("192.168.11.23", 19071)
+            val socket = Socket()
+            socket.connect(InetSocketAddress("10.75.120.171", 19071),5000)
+            Log.d(TAG,"ccc")
             val outputStream: OutputStream = socket.getOutputStream()
             val printWriter = PrintWriter(outputStream, true)
-            printWriter.println("4 show")
+            printWriter.println(msgMng.shapeMsg("show"))
             val inputStream = InputStreamReader(socket.getInputStream())
             val bufferedReader = BufferedReader(inputStream)
             val message = bufferedReader.readLine()
             socket.close()
             Log.d("APP",message)
-            return checkMsg(message)
+            return msgMng.checkMsg(message)
         } catch (e: IOException) {
             e.printStackTrace()
         }
         return arrayOf("Failed to connect to server")
     }
-
-    private fun checkMsg(msg: String): Array<String>{
-        val list = msg.split(" ").toMutableList()
-        var dataLen= list.size.minus(2)
-        for(i in list.subList(1,list.size)){
-            dataLen+=i.length
-        }
-        if(list[0].toInt()==dataLen){
-            for(i in 0 until list.size-1){
-                list[i]=list[i+1]
-            }
-            list.removeLast()
-            return list.toTypedArray()
-        }
-        return arrayOf()
-    }
-
-
-
 }
