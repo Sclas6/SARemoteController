@@ -123,7 +123,7 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
 
     private fun connectToServer(name:String,user:String,pwd:String): Array<String> {
         try {
-            val socket = Socket("10.75.120.171", 19071)
+            val socket = Socket(address_ip, 19071)
             val outputStream: OutputStream = socket.getOutputStream()
             val printWriter = PrintWriter(outputStream, true)
             if(pwd==""){

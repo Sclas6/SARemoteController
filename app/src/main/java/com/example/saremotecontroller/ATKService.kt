@@ -41,7 +41,7 @@ class ATKService() : Service() {
     }
     private fun connectToServer(): Array<String> {
         try {
-            socket = Socket("10.75.120.171", 19071)
+            socket = Socket(address_ip, 19071)
             val outputStream: OutputStream = socket!!.getOutputStream()
             printWriter = PrintWriter(outputStream, true)
             val inputStream = InputStreamReader(socket!!.getInputStream())
@@ -53,6 +53,7 @@ class ATKService() : Service() {
     }
     fun sendValue(msg:String){
         Thread{
+            //Log.d(TAG,msg)
             printWriter?.println(msgMng.shapeMsg(msg))
         }.start()
     }

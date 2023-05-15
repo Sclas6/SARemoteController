@@ -35,6 +35,8 @@ private const val REQUEST_ENABLE_BT = 1
 private const val MY_REQUEST_CODE: Int = 2
 private var isGpsEnabled: Boolean = false
 
+internal var address_ip = "192.168.94.68"
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var button: Button
@@ -135,7 +137,7 @@ class MainActivity : AppCompatActivity() {
         try {
             //val socket = Socket("192.168.11.23", 19071)
             val socket = Socket()
-            socket.connect(InetSocketAddress("10.75.120.171", 19071),5000)
+            socket.connect(InetSocketAddress(address_ip, 19071),5000)
             Log.d(TAG,"ccc")
             val outputStream: OutputStream = socket.getOutputStream()
             val printWriter = PrintWriter(outputStream, true)
