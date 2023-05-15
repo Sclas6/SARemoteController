@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import android.view.MotionEvent
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.SeekBar
@@ -17,6 +18,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import kotlin.math.*
+
 
 const val MODE_RIGHT = 0
 const val MODE_LEFT = 1
@@ -28,6 +30,7 @@ class OffLineActivity : AppCompatActivity() {
     private lateinit var sensor: ImageView
     private lateinit var textMaxSpeed: TextView
     private lateinit var textRotationSpeed: TextView
+    private lateinit var buttonExit: Button
 
     private var bleService: BLEService? = null
 
@@ -42,9 +45,14 @@ class OffLineActivity : AppCompatActivity() {
     }
 
     fun sendCrl(speed:Int,mode:Int,device:Int){
+        val d: Int = if(device==0){
+            0x02
+        }else{
+            0x01
+        }
         var motor = (mode shl 7 and 0x80)
         motor = (motor or speed)
-        val sendByte = byteArrayOf(0x02, 0x01, motor.toByte())
+        val sendByte = byteArrayOf(d.toByte(), 0x01, motor.toByte())
         if (bleService?.getStatus() != false) {
             bleService?.writeValue(sendByte)
         }
@@ -68,12 +76,9 @@ class OffLineActivity : AppCompatActivity() {
         sensor = findViewById(R.id.imageView)
         textMaxSpeed = findViewById(R.id.textMaxSpeed)
         textRotationSpeed = findViewById(R.id.textSpeedCtr)
+        buttonExit = findViewById(R.id.button_exit)
 
         seekbarMax.progress = 100
-
-        //testButton.setOnClickListener {
-            //bleService?.writeValue(byteArrayOf(0x02,0x01,0x0f))
-        //}
 
         seekbarCtr.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
@@ -82,7 +87,6 @@ class OffLineActivity : AppCompatActivity() {
                 }else{
                     sendCrl(i*-1,0,0)
                 }
-                //textRotationSpeed.text = String.format("Max Speed: %3d%%",i)
             }
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
             override fun onStopTrackingTouch(seekBar: SeekBar) {}
@@ -95,14 +99,20 @@ class OffLineActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
             override fun onStopTrackingTouch(seekBar: SeekBar) {}
         })
+        buttonExit.setOnClickListener{
+            finish()
+        }
     }
     private var prevX=0f
     private var prevY=0f
-    var mode = 0
+    private var mode = 0
     private val location = IntArray(2)
-    var prevTime=0L
-    var i = 0
+    private var prevTime=0L
+    private var i = 0
     var maxSpeed = 1.0
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {}
+
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         when (event?.action) {
             MotionEvent.ACTION_DOWN -> {
@@ -145,8 +155,7 @@ class OffLineActivity : AppCompatActivity() {
                         }
                         val distance =
                             sqrt((distanceX * distanceX).toDouble() + (distanceY * distanceY).toDouble())
-                        val deltaTime = time - prevTime
-                        var speed = distance /100// deltaTime
+                        var speed = distance /100
                         speed *= when {
                             r < 5000 -> 0.9
                             r < 12000 -> 0.8

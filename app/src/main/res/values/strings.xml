@@ -11,4 +11,7 @@
     <string name="not_support">ご利用のデバイスはBluetoothをサポートしていません</string>
     <string name="max_speed_100">Max Speed: 100%</string>
     <string name="rotation_speed_0">Rotation Speed:   0%</string>
+    <string name="button_exit">戻る</string>
+    <string name="sensor">SENSOR</string>
+    <string name="sensor2">SENSOR</string>
 </resources>

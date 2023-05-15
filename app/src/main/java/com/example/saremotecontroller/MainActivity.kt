@@ -16,7 +16,6 @@ import android.os.IBinder
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -28,18 +27,16 @@ import java.io.OutputStream
 import java.io.PrintWriter
 import java.net.InetSocketAddress
 import java.net.Socket
-import java.security.AccessController.getContext
-
 
 private const val REQUEST_ENABLE_BT = 1
 private const val MY_REQUEST_CODE: Int = 2
 private var isGpsEnabled: Boolean = false
 
-internal var address_ip = "192.168.94.68"
+internal var address_ip = "192.168.11.14"
 
+@Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var button: Button
     private var bleService: BLEService? = null
     private var msgMng: MsgManager = MsgManager()
 
@@ -76,7 +73,7 @@ class MainActivity : AppCompatActivity() {
         //offlineButton.isEnabled=false
 
         val locationManager: LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
 
         if (!bluetoothAdapter.isEnabled) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
@@ -97,12 +94,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         connectButton.setOnClickListener {
-            //if(bleService!=null&& bleService!!.getStatus()){
-            if(true){
+            if(bleService!=null&& bleService!!.getStatus()){
                 Thread {
-                    Log.d(TAG,"aaa")
                     val message = connectToServer()
-                    Log.d(TAG,"bbb")
                     Handler(Looper.getMainLooper()).post {
                         if (message[0] != "Failed to connect to server") {
                             val intent = Intent(this, RoomList::class.java)
@@ -118,20 +112,20 @@ class MainActivity : AppCompatActivity() {
             }
         }
         offlineButton.setOnClickListener {
-        //    if(bleService!=null&& bleService!!.getStatus()){
+            if(bleService!=null&& bleService!!.getStatus()){
                 //Toast.makeText(this, "接続されています", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, OffLineActivity::class.java)
                 startActivity(intent)
-            //}else {
-                //Toast.makeText(this, "BlueToothデバイスに接続してください", Toast.LENGTH_SHORT).show()
-            //}
+            }else {
+                Toast.makeText(this, "BlueToothデバイスに接続してください", Toast.LENGTH_SHORT).show()
+            }
         }
-        bleSearchButton.setOnClickListener(View.OnClickListener {
+        bleSearchButton.setOnClickListener {
             Log.d("clickUpdateButton", "Update Button Clicked!!")
             val intent = Intent(this, BLEService::class.java)
             bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
             Log.d(TAG, "Service bound.")
-        })
+        }
     }
     private fun connectToServer(): Array<String> {
         try {
