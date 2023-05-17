@@ -15,7 +15,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -31,8 +30,8 @@ import java.net.Socket
 class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
     private lateinit var recyclerView: RecyclerView
     private lateinit var buttonAdapter: ButtonAdapter
-    private lateinit var testText: TextView
     private lateinit var buttonUpdate: Button
+    private lateinit var buttonCreate: Button
 
     private var bleService: BLEService? = null
     private val msgMng = MsgManager()
@@ -56,18 +55,19 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
         bindService(bleIntent, serviceConnection, Context.BIND_AUTO_CREATE)
 
         buttonUpdate = findViewById(R.id.buttonUpdate)
-        testText = findViewById(R.id.textView)
+        buttonCreate = findViewById(R.id.buttonCreate)
+        //testText = findViewById(R.id.textView)
         buttonUpdate.text = "更新"
         val value = intent.getStringArrayExtra("roomList")
         var myDataList=value?.toMutableList()
         //val buttonList = mutableListOf<ButtonData>(b1,b2,b3,b4)
         val buttonList= mutableListOf<ButtonData>()
-        testText.text=myDataList.toString()
+        //testText.text=myDataList.toString()
         if (myDataList != null) {
             for(i in 0 until myDataList.size step 3){
                 buttonList.add(ButtonData(myDataList[i],myDataList[i+1],myDataList[i+2].toInt()))
             }
-            testText.text=buttonList.toString()
+            //testText.text=buttonList.toString()
         }
 
         // ボタン用のデータクラスの動的な配列を設定
@@ -92,10 +92,84 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
                 for(i in 0 until myDataList!!.size step 3){
                     buttonList.add(ButtonData(myDataList!![i],myDataList!![i+1],myDataList!![i+2].toInt()))
                 }
-                testText.text=buttonList.toString()
+                //testText.text=buttonList.toString()
                 adapter.notifyDataSetChanged()
             }else{
                 Toast.makeText(this, "サーバへの接続に失敗しました", Toast.LENGTH_SHORT).show()
+            }
+        }
+        buttonCreate.setOnClickListener{
+            //if(bleService!=null&& bleService!!.getStatus()) {
+            if(true){
+                val dialogView =
+                    LayoutInflater.from(this).inflate(R.layout.dialog_create_layout, null)
+                val roomName = dialogView.findViewById<EditText>(R.id.roomName)
+                roomName.hint = "Room Name"
+                val userName = dialogView.findViewById<EditText>(R.id.userName)
+                userName.hint = "Your Name"
+                val passWard = dialogView.findViewById<EditText>(R.id.passWard)
+                passWard.hint = "Room Password"
+                val dialog = AlertDialog.Builder(this)
+                    .setTitle("ルーム情報")
+                    .setView(dialogView)
+                    .setPositiveButton("OK") { _, _ ->
+                        // OKボタン押したときの処理
+                        Thread {
+                            Log.d(TAG, "[CHK_CREATE] ${passWard.text}")
+                            if (roomName.text.toString() != "" && userName.text.toString() != "") {
+                                val message = chkCreate(roomName.text.toString())
+                                Handler(Looper.getMainLooper()).post {
+                                    if (message[0] != "Failed to connect to server") {
+                                        Toast.makeText(
+                                            this,
+                                            message.toList().toString(),
+                                            Toast.LENGTH_SHORT
+                                        )
+                                            .show()
+                                        if (message[0] == "ok") {
+                                            val intent = Intent(this, OnlineDefActivity::class.java)
+                                            val roomInfo: Array<String> = arrayOf(
+                                                roomName.text.toString(),
+                                                userName.text.toString(),
+                                                passWard.text.toString()
+                                            )
+                                            Toast.makeText(
+                                                this,
+                                                roomInfo.contentToString(),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            intent.putExtra("command", roomInfo)
+                                            startActivity(intent)
+                                        } else {
+                                            AlertDialog.Builder(this)
+                                                .setTitle("エラー")
+                                                .setMessage("不正なトークン\nパスワードが異なるか, 部屋が存在しません")
+                                                .setPositiveButton("OK") { _, _ -> }
+                                                .show()
+                                        }
+                                    } else {
+                                        Toast.makeText(
+                                            this,
+                                            "サーバへの接続に失敗しました",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            } else {
+                                Handler(Looper.getMainLooper()).post {
+                                    Toast.makeText(
+                                        this,
+                                        "ルーム名とユーザ名は入力必須です",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        }.start()
+                    }
+                dialog.setNegativeButton("キャンセル", null)
+                dialog.show()
+            }else{
+                Toast.makeText(this, "Bluetoothデバイスを接続してください", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -104,7 +178,7 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
         val tokens = name.split(" ")
         Toast.makeText(this, bleService?.getStatus().toString(), Toast.LENGTH_SHORT).show()
         Toast.makeText(this, name, Toast.LENGTH_SHORT).show()
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_layout, null)
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_join_layout, null)
         val userName = dialogView.findViewById<EditText>(R.id.userName)
         userName.hint="Your Name"
         val passWard = dialogView.findViewById<EditText>(R.id.passWard)
@@ -115,7 +189,7 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
             .setPositiveButton("OK") { _, _ ->
                 // OKボタン押したときの処理
                 Thread {
-                    val message = connectToServer(
+                    val message = chkJoin(
                         tokens[0],
                         userName.text.toString(),
                         passWard.text.toString()
@@ -145,7 +219,7 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
         dialog.show()
     }
 
-    private fun connectToServer(name:String,user:String,pwd:String): Array<String> {
+    private fun chkJoin(name:String, user:String, pwd:String): Array<String> {
         try {
             val socket = Socket(address_ip, 19071)
             val outputStream: OutputStream = socket.getOutputStream()
@@ -162,7 +236,24 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
             val message = bufferedReader.readLine()
             socket.close()
             Log.d("APP",message)
-            //return checkMsg(message)
+            return msgMng.checkMsg(message)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return arrayOf("Failed to connect to server")
+    }
+    private fun chkCreate(name:String): Array<String> {
+        try {
+            val socket = Socket(address_ip, 19071)
+            val outputStream: OutputStream = socket.getOutputStream()
+            val printWriter = PrintWriter(outputStream, true)
+            Log.d(TAG,msgMng.shapeMsg(String.format("chk_create %s",name)))
+            printWriter.println(msgMng.shapeMsg(String.format("chk_create %s",name)))
+            val inputStream = InputStreamReader(socket.getInputStream())
+            val bufferedReader = BufferedReader(inputStream)
+            val message = bufferedReader.readLine()
+            socket.close()
+            Log.d("APP",message)
             return msgMng.checkMsg(message)
         } catch (e: IOException) {
             e.printStackTrace()

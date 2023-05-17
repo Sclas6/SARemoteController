@@ -11,7 +11,7 @@ class MsgManager {
             for(i in 1 until list.size){
                 dataLen+=list[i].length
             }
-            Log.d(TAG,dataLen.toString())
+            //Log.d(TAG,dataLen.toString())
             if(list[0].toInt()==dataLen) {
                 for (i in 0 until list.size - 1) {
                     list[i] = list[i + 1]

@@ -6,19 +6,9 @@
     android:layout_height="match_parent"
     tools:context=".RoomList">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/textview"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <LinearLayout
-        android:layout_width="288dp"
-        android:layout_height="569dp"
+        android:layout_width="370dp"
+        android:layout_height="619dp"
         android:layout_gravity="center_horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -28,7 +18,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="569dp"
+            android:layout_height="620dp"
             android:layout_gravity="center"
             tools:layout_editor_absoluteX="152dp"
             tools:layout_editor_absoluteY="356dp" />
@@ -36,7 +26,7 @@
     </LinearLayout>
 
     <Button
-        android:id="@+id/button3"
+        android:id="@+id/buttonCreate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="48dp"

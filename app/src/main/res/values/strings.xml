@@ -6,12 +6,13 @@
     <string name="sub">test</string>
     <string name="move">test</string>
     <string name="textview">TextView</string>
-    <string name="userName">aaa</string>
-    <string name="passWard">Text Box 2</string>
+    <string name="userName">ユーザ名</string>
+    <string name="passWard">パスワード</string>
     <string name="not_support">ご利用のデバイスはBluetoothをサポートしていません</string>
     <string name="max_speed_100">Max Speed: 100%</string>
     <string name="rotation_speed_0">Rotation Speed:   0%</string>
     <string name="button_exit">戻る</string>
     <string name="sensor">SENSOR</string>
     <string name="sensor2">SENSOR</string>
+    <string name="roomName">ルーム名</string>
 </resources>

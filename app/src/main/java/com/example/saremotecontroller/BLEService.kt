@@ -14,7 +14,6 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.ContentValues.TAG
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Binder
@@ -31,7 +30,8 @@ private var connected=false
 private var bluetoothGatt: BluetoothGatt? = null
 private var saDevice: BluetoothDevice? = null
 
-class BLEService() : Service() {
+@Suppress("DEPRECATION")
+class BLEService : Service() {
 
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bluetoothLeScanner: BluetoothLeScanner? = null
@@ -112,37 +112,6 @@ class BLEService() : Service() {
             }
             override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
                 super.onServicesDiscovered(gatt, status)
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    //bluetoothGatt=gatt
-                    // GATTサービスが見つかった場合の処理をここに記述
-                    /*
-                    val value= byteArrayOf(0x02, 0x01, 0x0f)
-                    //Log.d(TAG,"WriteValue Start")
-                    //Log.d(TAG,"[CHARACTERISTIC]")
-                    //Log.d(TAG, bluetoothGatt?.services.toString())
-                    //Log.d(TAG,"[SERVICE_UUID]")
-                    //Log.d(TAG, bluetoothGatt?.getService(UUID.fromString(SERVICE_UUID))?.uuid.toString())
-                    val service = bluetoothGatt?.getService(UUID.fromString("40ee1111-63ec-4b7f-8ce7-712efd55b90e"))
-                    val characteristic = service?.getCharacteristic(UUID.fromString(CHARACTERISTIC_UUID))
-                    //characteristic?.setValue(byteArrayOf(0x02,0x01,0x0f))
-                    characteristic?.setValue(value)
-                    Log.d(TAG,bluetoothGatt?.writeCharacteristic(characteristic).toString())
-                    Log.d(TAG,"[GATT]")
-                    Log.d(TAG, bluetoothGatt.toString())
-                    */
-
-                }
-            }
-
-            override fun onCharacteristicRead(
-                gatt: BluetoothGatt,
-                characteristic: BluetoothGattCharacteristic,
-                status: Int
-            ) {
-                super.onCharacteristicRead(gatt, characteristic, status)
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    // キャラクタリスティックを読み取った場合の処理をここに記述
-                }
             }
 
             override fun onCharacteristicWrite(
@@ -151,22 +120,12 @@ class BLEService() : Service() {
                 status: Int
             ) {
                 super.onCharacteristicWrite(gatt, characteristic, status)
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    // キャラクタリスティックに書き込んだ場合の処理をここに記述
-                }
-            }
 
-            override fun onCharacteristicChanged(
-                gatt: BluetoothGatt,
-                characteristic: BluetoothGattCharacteristic
-            ) {
-                super.onCharacteristicChanged(gatt, characteristic)
-                // キャラクタリスティックが変更された場合の処理をここに記述
             }
         }
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
             result?.let {
-                var device = result.device
+                val device = result.device
                 if (device.name==TARGET_DEVICE_NAME){
                     Log.d(TAG,device.name.toString())
                     if (ActivityCompat.checkSelfPermission(
@@ -202,7 +161,7 @@ class BLEService() : Service() {
     fun getStatus():Boolean{
         return connected
     }
-
+/*
     fun getGatt():String{
         return bluetoothGatt.toString()
     }
@@ -221,10 +180,10 @@ class BLEService() : Service() {
         }
         return "Permission Error"
     }
-
+*/
     fun writeValue(value:ByteArray){
-        Log.d(TAG,"NAME")
-        Log.d(TAG, bluetoothGatt?.device.toString())
+        //Log.d(TAG,"NAME")
+        //Log.d(TAG, bluetoothGatt?.device.toString())
         if(connected){
             if (ActivityCompat.checkSelfPermission(
                     this@BLEService,
@@ -232,16 +191,16 @@ class BLEService() : Service() {
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
                 //val value= byteArrayOf(0x02, 0x01, 0x0f)
-                Log.d(TAG,"WriteValue Start")
-                Log.d(TAG,"[CHARACTERISTIC]")
-                Log.d(TAG, bluetoothGatt?.services.toString())
-                Log.d(TAG,"[SERVICE_UUID]")
-                Log.d(TAG, bluetoothGatt?.getService(UUID.fromString(SERVICE_UUID))?.uuid.toString())
+                //Log.d(TAG,"WriteValue Start")
+                //Log.d(TAG,"[CHARACTERISTIC]")
+                //Log.d(TAG, bluetoothGatt?.services.toString())
+                //Log.d(TAG,"[SERVICE_UUID]")
+                //Log.d(TAG, bluetoothGatt?.getService(UUID.fromString(SERVICE_UUID))?.uuid.toString())
                 val service = bluetoothGatt?.getService(UUID.fromString("40ee1111-63ec-4b7f-8ce7-712efd55b90e"))
                 val characteristic = service?.getCharacteristic(UUID.fromString(CHARACTERISTIC_UUID))
                 //characteristic?.setValue(byteArrayOf(0x02,0x01,0x0f))
-                characteristic?.setValue(value)
-                Log.d(TAG,bluetoothGatt?.writeCharacteristic(characteristic).toString())
+                characteristic?.value = value
+                bluetoothGatt?.writeCharacteristic(characteristic).toString()
             }
         }
     }
@@ -251,7 +210,7 @@ class BLEService() : Service() {
         Log.d(TAG,"Service Created")
     }
 
-    override fun onBind(intent: Intent): IBinder? {
+    override fun onBind(intent: Intent): IBinder {
         return binder
     }
 }

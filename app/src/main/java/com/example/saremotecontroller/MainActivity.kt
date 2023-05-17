@@ -94,22 +94,18 @@ class MainActivity : AppCompatActivity() {
         }
 
         connectButton.setOnClickListener {
-            if(bleService!=null&& bleService!!.getStatus()){
-                Thread {
-                    val message = connectToServer()
-                    Handler(Looper.getMainLooper()).post {
-                        if (message[0] != "Failed to connect to server") {
-                            val intent = Intent(this, RoomList::class.java)
-                            intent.putExtra("roomList", message)
-                            startActivity(intent)
-                        }else{
-                            Toast.makeText(this@MainActivity, "サーバへの接続に失敗しました", Toast.LENGTH_SHORT).show()
-                        }
+            Thread {
+                val message = connectToServer()
+                Handler(Looper.getMainLooper()).post {
+                    if (message[0] != "Failed to connect to server") {
+                        val intent = Intent(this, RoomList::class.java)
+                        intent.putExtra("roomList", message)
+                        startActivity(intent)
+                    }else{
+                        Toast.makeText(this@MainActivity, "サーバへの接続に失敗しました", Toast.LENGTH_SHORT).show()
                     }
-                }.start()
-            }else {
-                Toast.makeText(this, "BlueToothデバイスに接続してください", Toast.LENGTH_SHORT).show()
-            }
+                }
+            }.start()
         }
         offlineButton.setOnClickListener {
             if(bleService!=null&& bleService!!.getStatus()){
