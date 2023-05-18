@@ -67,7 +67,6 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
             for(i in 0 until myDataList.size step 3){
                 buttonList.add(ButtonData(myDataList[i],myDataList[i+1],myDataList[i+2].toInt()))
             }
-            //testText.text=buttonList.toString()
         }
 
         // ボタン用のデータクラスの動的な配列を設定
