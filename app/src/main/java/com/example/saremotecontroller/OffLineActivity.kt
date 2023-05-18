@@ -56,7 +56,6 @@ class OffLineActivity : AppCompatActivity() {
         if (bleService?.getStatus() != false) {
             bleService?.writeValue(sendByte)
         }
-        //testButton.text=String.format("%d, %d",mode,speed)
         indicator.progress=speed
         textRotationSpeed.text = String.format("Rotation Speed: %3d%%",speed)
     }

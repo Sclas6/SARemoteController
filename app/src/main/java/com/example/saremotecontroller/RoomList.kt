@@ -99,8 +99,7 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
             }
         }
         buttonCreate.setOnClickListener{
-            //if(bleService!=null&& bleService!!.getStatus()) {
-            if(true){
+            if(bleService!=null&& bleService!!.getStatus()) {
                 val dialogView =
                     LayoutInflater.from(this).inflate(R.layout.dialog_create_layout, null)
                 val roomName = dialogView.findViewById<EditText>(R.id.roomName)
@@ -113,7 +112,6 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
                     .setTitle("ルーム情報")
                     .setView(dialogView)
                     .setPositiveButton("OK") { _, _ ->
-                        // OKボタン押したときの処理
                         Thread {
                             Log.d(TAG, "[CHK_CREATE] ${passWard.text}")
                             if (roomName.text.toString() != "" && userName.text.toString() != "") {
@@ -143,7 +141,7 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
                                         } else {
                                             AlertDialog.Builder(this)
                                                 .setTitle("エラー")
-                                                .setMessage("不正なトークン\nパスワードが異なるか, 部屋が存在しません")
+                                                .setMessage("同じ名前の部屋が既に存在します")
                                                 .setPositiveButton("OK") { _, _ -> }
                                                 .show()
                                         }
@@ -187,7 +185,6 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
             .setTitle("ユーザ名入力")
             .setView(dialogView)
             .setPositiveButton("OK") { _, _ ->
-                // OKボタン押したときの処理
                 Thread {
                     val message = chkJoin(
                         tokens[0],

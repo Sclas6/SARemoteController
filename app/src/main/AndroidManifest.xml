@@ -32,7 +32,6 @@
             android:exported="false" />
 
         <service android:name=".BLEService" />
-        <service android:name=".ATKService" />
 
         <activity
             android:name=".RoomList"

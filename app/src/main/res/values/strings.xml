@@ -15,4 +15,11 @@
     <string name="sensor">SENSOR</string>
     <string name="sensor2">SENSOR</string>
     <string name="roomName">ルーム名</string>
+    <string name="rotate_right">Rotate_Right</string>
+    <string name="rotate_left">Rotate_Left</string>
+    <string name="rotateText">0%</string>
+    <string name="buttonCreate">部屋作成</string>
+    <string name="buttonUpdate">更新</string>
+    <string name="numText">テキスト</string>
+    <string name="roomButton">RoomName\nUser\n</string>
 </resources>

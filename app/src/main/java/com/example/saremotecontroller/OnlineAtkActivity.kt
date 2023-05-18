@@ -1,13 +1,8 @@
 package com.example.saremotecontroller
 
-import android.content.ComponentName
 import android.content.ContentValues.TAG
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.IBinder
 import android.util.Log
 import android.view.MotionEvent
 import android.widget.Button
@@ -15,6 +10,10 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.SeekBar
 import android.widget.TextView
+import java.io.IOException
+import java.io.OutputStream
+import java.io.PrintWriter
+import java.net.Socket
 import kotlin.math.sqrt
 
 class OnlineAtkActivity : AppCompatActivity() {
@@ -27,9 +26,13 @@ class OnlineAtkActivity : AppCompatActivity() {
     private lateinit var textRotationSpeed: TextView
     private lateinit var buttonExit: Button
 
-    private var atkService: ATKService? = null
+    //private var atkService: ATKService? = null
+    private val msgMng = MsgManager()
     private var value: Array<String>? = null
-
+    private var th: Thread? = null
+    private var socket: Socket? = null
+    private var printWriter:PrintWriter? = null
+/*
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             Log.d(TAG,"ATKService connected")
@@ -51,20 +54,20 @@ class OnlineAtkActivity : AppCompatActivity() {
         override fun onServiceDisconnected(className: ComponentName) {
         }
     }
-
+*/
     fun sendCrl(speed:Int,mode:Int,device:Int){
-        Log.d(TAG,atkService!!.chkCon().toString())
-        if(atkService!=null){
-            val d: Int = if(device==0){
-                0x02
-            }else{
-                0x01
-            }
-            var motor = (mode shl 7 and 0x80)
-            motor = (motor or speed)
-            val sendByte = byteArrayOf(d.toByte(), 0x01, motor.toByte())
-            atkService!!.sendValue("ctr ${sendByte.contentToString().replace(" ","")}")
+        Log.d(TAG,chkCon().toString())
+        val d: Int = if(device==0) {
+            0x02
+        }else{
+            0x01
         }
+        var motor = (mode shl 7 and 0x80)
+        motor = (motor or speed)
+        val sendByte = byteArrayOf(d.toByte(), 0x01, motor.toByte())
+        sendValue("ctr ${sendByte.contentToString().replace(" ","")}")
+        indicator.progress=speed
+        textRotationSpeed.text = String.format("Rotation Speed: %3d%%",speed)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,16 +84,21 @@ class OnlineAtkActivity : AppCompatActivity() {
         buttonExit = findViewById(R.id.button_exit2)
 
         seekbarMax.progress = 100
+        th = Thread{
+            connectToServer()
+        }
+        th!!.start()
 
-        //textMaxSpeed.text=value.contentToString()
-
-        Log.d("clickUpdateButton", "Update Button Clicked!!")
-        val intent = Intent(this, ATKService::class.java)
-        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
-        Log.d(TAG, "Service bound.")
-        //sleep(2000)
-        Log.d(TAG,"[ATK]"+atkService.toString())
-
+        while(true){
+            if (chkCon()){
+                break
+            }
+        }
+        if(value!![4]=="None"){
+            sendValue("${value!![1]} ${value!![2]} ${value!![3]}")
+        }else{
+            sendValue("${value!![1]} ${value!![2]} ${value!![3]} ${value!![4]}")
+        }
 
         seekbarCtr.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
@@ -112,9 +120,7 @@ class OnlineAtkActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar) {}
         })
         buttonExit.setOnClickListener{
-            if(atkService!=null){
-                atkService!!.sendValue("exit")
-            }
+            sendValue("exit")
             finish()
         }
     }
@@ -136,7 +142,6 @@ class OnlineAtkActivity : AppCompatActivity() {
                 val cY = sensor.height/2
                 prevX = event.x - location[0] - cX
                 prevY = cY - event.y + location[1]
-                //testButton.text= String.format("x: %d, y: %d",x,y)
             }
             MotionEvent.ACTION_MOVE ->{
                 sensor.getLocationOnScreen(location)
@@ -148,12 +153,11 @@ class OnlineAtkActivity : AppCompatActivity() {
                 val r = y*y+x*x
                 if(i%4==0){
                     if(r<circle) {
-                        //testButton.text = String.format("%s,%s", circle.toString(), r.toString())
                         val time = System.currentTimeMillis()
                         val distanceX = x - prevX
                         val distanceY = y - prevY
                         if(i==0){
-                            Log.d(TAG,"Mode Change")
+                            //Log.d(TAG,"Mode Change")
                             mode = if(distanceX>=0){
                                 if(y>=0){
                                     MODE_RIGHT
@@ -205,10 +209,31 @@ class OnlineAtkActivity : AppCompatActivity() {
         }
         return super.onTouchEvent(event) //※
     }
-
-
-    override fun onStop() {
-        super.onStop()
-        stopService(Intent(this,ATKService::class.java))
+    private fun connectToServer(): Array<String> {
+        try {
+            socket = Socket(address_ip, 19071)
+            val outputStream: OutputStream = socket!!.getOutputStream()
+            printWriter = PrintWriter(outputStream, true)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return arrayOf("Failed to connect to server")
+    }
+    private fun sendValue(msg:String){
+        Thread{
+            printWriter?.println(msgMng.shapeMsg(msg))
+        }.start()
+    }
+    private fun chkCon() :Boolean{
+        return socket != null
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+        sendValue(msgMng.shapeMsg("exit"))
+        sendValue(msgMng.shapeMsg("quit"))
+        socket!!.close()
+        if(th!=null){
+            th!!.interrupt()
+        }
     }
 }
