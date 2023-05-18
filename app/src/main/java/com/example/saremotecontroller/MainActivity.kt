@@ -69,9 +69,6 @@ class MainActivity : AppCompatActivity() {
         bleSearchButton = findViewById(R.id.button2)
         offlineButton = findViewById(R.id.button)
 
-        //connectButton.isEnabled=false
-        //offlineButton.isEnabled=false
-
         val locationManager: LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
 
@@ -89,10 +86,7 @@ class MainActivity : AppCompatActivity() {
         }
         if(!isGpsEnabled){
             startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), MY_REQUEST_CODE)
-        }else{
-            Toast.makeText(applicationContext, "GPS OK", Toast.LENGTH_LONG).show()
         }
-
         connectButton.setOnClickListener {
             Thread {
                 val message = connectToServer()
@@ -109,7 +103,6 @@ class MainActivity : AppCompatActivity() {
         }
         offlineButton.setOnClickListener {
             if(bleService!=null&& bleService!!.getStatus()){
-                //Toast.makeText(this, "接続されています", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, OffLineActivity::class.java)
                 startActivity(intent)
             }else {
@@ -117,10 +110,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
         bleSearchButton.setOnClickListener {
-            Log.d("clickUpdateButton", "Update Button Clicked!!")
             val intent = Intent(this, BLEService::class.java)
             bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
-            Log.d(TAG, "Service bound.")
         }
     }
     private fun connectToServer(): Array<String> {
@@ -128,7 +119,6 @@ class MainActivity : AppCompatActivity() {
             //val socket = Socket("192.168.11.23", 19071)
             val socket = Socket()
             socket.connect(InetSocketAddress(address_ip, 19071),5000)
-            Log.d(TAG,"ccc")
             val outputStream: OutputStream = socket.getOutputStream()
             val printWriter = PrintWriter(outputStream, true)
             printWriter.println(msgMng.shapeMsg("show"))
@@ -136,7 +126,7 @@ class MainActivity : AppCompatActivity() {
             val bufferedReader = BufferedReader(inputStream)
             val message = bufferedReader.readLine()
             socket.close()
-            Log.d("APP",message)
+            //Log.d("APP",message)
             return msgMng.checkMsg(message)
         } catch (e: IOException) {
             e.printStackTrace()

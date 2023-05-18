@@ -40,13 +40,17 @@
         app:srcCompat="@drawable/rotate_left"
         android:contentDescription="@string/rotate_left" />
 
-    <SeekBar
-        android:id="@+id/testSeekBar"
-        android:layout_width="197dp"
-        android:layout_height="41dp"
-        android:layout_marginBottom="80dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <TextView
+        android:id="@+id/roomInfoText"
+        android:layout_width="344dp"
+        android:layout_height="94dp"
+        android:layout_marginTop="48dp"
+        android:gravity="center_vertical"
+        android:text="@string/text_view"
+        android:textSize="30sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

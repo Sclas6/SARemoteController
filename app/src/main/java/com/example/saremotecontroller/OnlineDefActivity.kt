@@ -15,6 +15,8 @@ import android.os.SystemClock.sleep
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -34,6 +36,7 @@ class OnlineDefActivity : AppCompatActivity() {
     private lateinit var rotateRight:ImageView
     private lateinit var rotateLeft:ImageView
     private lateinit var rotateText:TextView
+    private lateinit var roomInfoText: TextView
     private var rotateSpeed = 0
 
     private val msgMng = MsgManager()
@@ -47,6 +50,8 @@ class OnlineDefActivity : AppCompatActivity() {
         }
     }
 
+
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         value = intent.getStringArrayExtra("command")
@@ -57,6 +62,8 @@ class OnlineDefActivity : AppCompatActivity() {
         rotateText.text = "0%"
         rotateRight = findViewById(R.id.rotate_Right)
         rotateLeft = findViewById(R.id.rotate_Left)
+        roomInfoText = findViewById(R.id.roomInfoText)
+        roomInfoText.text = "Room:  ${value!![0]}\nUser:  <入室待ち>"
         rotateLeft.alpha = 0f
         rotateThread.start()
         th = Thread{
@@ -118,17 +125,35 @@ class OnlineDefActivity : AppCompatActivity() {
             }
             val inputStream = InputStreamReader(socket!!.getInputStream())
             val bufferedReader = BufferedReader(inputStream)
-            var message: String
+            var message: Array<String>
+
             while(true){
-                message = bufferedReader.readLine()
+                message = msgMng.checkMsg(bufferedReader.readLine())
+                //Log.d("MESSAGE", message.contentToString())
                 try{
-                    if(msgMng.checkMsg(message)[0] == "ctr"){
-                        val ctr = msgMng.checkMsg(message)[1]
+                    if(message[0] == "matching"){
+                        Handler(Looper.getMainLooper()).post{
+                            roomInfoText.text = "Room:  ${value!![0]}\nUser:  ${message[1]}"
+                            AlertDialog.Builder(this)
+                                .setTitle("マッチング")
+                                .setMessage("${message[1]}さんが入室しました")
+                                .setPositiveButton("OK") { _, _ ->
+                                }.show()
+                        }
+                    }else if(message[0] == "ctr"){
+                        val ctr = message[1]
                         val sendInt = ctr.substring(1,ctr.length-1).split(',')
                         bleService!!.writeValue(byteArrayOf(sendInt[0].toInt().toByte(), sendInt[1].toInt().toByte(), sendInt[2].toInt().toByte()))
                         val speed = (sendInt[2].toInt() and 0xFF) and 0x7f
-                        rotateText.text = "$speed%"
-                        rotateImage(if (sendInt[2].toInt()<0) -1 else 1, speed)
+                        Handler(Looper.getMainLooper()).post{
+                            rotateText.text = "$speed%"
+                            rotateImage(if (sendInt[2].toInt()<0) -1 else 1, speed)
+                        }
+                    }else if(message[0] == "err"){
+                        Handler(Looper.getMainLooper()).post{
+                            Toast.makeText(this, "通信が切断されました", Toast.LENGTH_LONG).show()
+                            finish()
+                        }
                     }
                 }catch (_:Exception){
                 }

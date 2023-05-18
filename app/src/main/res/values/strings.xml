@@ -22,4 +22,5 @@
     <string name="buttonUpdate">更新</string>
     <string name="numText">テキスト</string>
     <string name="roomButton">RoomName\nUser\n</string>
+    <string name="text_view">Text\nView</string>
 </resources>
