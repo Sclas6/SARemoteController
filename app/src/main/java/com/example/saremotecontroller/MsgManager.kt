@@ -1,8 +1,4 @@
 package com.example.saremotecontroller
-
-import android.content.ContentValues.TAG
-import android.util.Log
-
 class MsgManager {
     fun checkMsg(msg:String): Array<String>{
         try{

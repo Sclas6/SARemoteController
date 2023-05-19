@@ -32,7 +32,7 @@ private const val REQUEST_ENABLE_BT = 1
 private const val MY_REQUEST_CODE: Int = 2
 private var isGpsEnabled: Boolean = false
 
-internal var address_ip = "192.168.11.14"
+internal var address_ip = "157.7.214.224"
 
 @Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {

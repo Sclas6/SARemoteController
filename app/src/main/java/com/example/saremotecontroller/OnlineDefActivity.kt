@@ -17,11 +17,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import java.io.BufferedReader
 import java.io.IOException
-import java.io.InputStreamReader
-import java.io.OutputStream
-import java.io.PrintWriter
 import java.lang.Exception
 import java.net.Socket
 import kotlin.math.abs
@@ -31,7 +27,6 @@ class OnlineDefActivity : AppCompatActivity() {
     private var value: Array<String>? = null
     private var th: Thread? = null
     private var socket:Socket? = null
-    private var printWriter:PrintWriter? = null
 
     private lateinit var rotateRight:ImageView
     private lateinit var rotateLeft:ImageView
@@ -39,7 +34,8 @@ class OnlineDefActivity : AppCompatActivity() {
     private lateinit var roomInfoText: TextView
     private var rotateSpeed = 0
 
-    private val msgMng = MsgManager()
+    private val scMng = SocketManager()
+
     private var bleService: BLEService? = null
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
@@ -114,22 +110,16 @@ class OnlineDefActivity : AppCompatActivity() {
     private fun defLoop(name:String, user:String, pwd:String){
         try {
             socket = Socket(address_ip, 19071)
-            val outputStream: OutputStream = socket!!.getOutputStream()
-            printWriter = PrintWriter(outputStream, true)
             if(pwd == ""){
-                Log.d(ContentValues.TAG,msgMng.shapeMsg(String.format("create %s %s",name,user)))
-                printWriter!!.println(msgMng.shapeMsg(String.format("create %s %s",name,user)))
+                Log.d(ContentValues.TAG,String.format("create %s %s",name,user))
+                scMng.sendValue(socket!!,String.format("create %s %s",name,user))
             }else{
-                Log.d(ContentValues.TAG,msgMng.shapeMsg(String.format("create %s %s %s", name, user, pwd)))
-                printWriter!!.println(msgMng.shapeMsg(String.format("create %s %s %s", name, user, pwd)))
+                Log.d(ContentValues.TAG,String.format("create %s %s %s", name, user, pwd))
+                scMng.sendValue(socket!!,(String.format("create %s %s %s", name, user, pwd)))
             }
-            val inputStream = InputStreamReader(socket!!.getInputStream())
-            val bufferedReader = BufferedReader(inputStream)
             var message: Array<String>
-
             while(true){
-                message = msgMng.checkMsg(bufferedReader.readLine())
-                //Log.d("MESSAGE", message.contentToString())
+                message = scMng.readValue(socket!!, BLOCKING)
                 try{
                     if(message[0] == "matching"){
                         Handler(Looper.getMainLooper()).post{
@@ -162,15 +152,9 @@ class OnlineDefActivity : AppCompatActivity() {
             e.printStackTrace()
         }
     }
-    private fun sendValue(value:String){
-        Thread{
-            printWriter!!.println(msgMng.shapeMsg(value))
-            Log.d("APP","sendEXIT")
-        }.start()
-    }
     override fun onDestroy() {
         super.onDestroy()
-        sendValue("exit")
+        scMng.sendValue(socket!!,"exit")
         sleep(1000)
         socket!!.close()
         th?.interrupt()

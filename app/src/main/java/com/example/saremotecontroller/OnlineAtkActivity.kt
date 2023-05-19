@@ -1,18 +1,17 @@
 package com.example.saremotecontroller
 
-import android.content.ContentValues.TAG
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.Toast
 import java.io.IOException
-import java.io.OutputStream
-import java.io.PrintWriter
 import java.net.Socket
 import kotlin.math.sqrt
 
@@ -26,37 +25,12 @@ class OnlineAtkActivity : AppCompatActivity() {
     private lateinit var textRotationSpeed: TextView
     private lateinit var buttonExit: Button
 
-    //private var atkService: ATKService? = null
-    private val msgMng = MsgManager()
+    private val scMng = SocketManager()
     private var value: Array<String>? = null
     private var th: Thread? = null
     private var socket: Socket? = null
-    private var printWriter:PrintWriter? = null
-/*
-    private val serviceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            Log.d(TAG,"ATKService connected")
-            val binder = service as ATKService.MyServiceBinder
-            atkService = binder.getService()
-            Log.d(TAG, "[ATK]${atkService}")
-            while(true){
-                if (atkService!!.chkCon()){
-                    break
-                }
-            }
-            if(value!![4]=="None"){
-                atkService?.sendValue("${value!![1]} ${value!![2]} ${value!![3]}")
-            }else{
-                atkService?.sendValue("${value!![1]} ${value!![2]} ${value!![3]} ${value!![4]}")
-            }
-        }
 
-        override fun onServiceDisconnected(className: ComponentName) {
-        }
-    }
-*/
     fun sendCrl(speed:Int,mode:Int,device:Int){
-        Log.d(TAG,chkCon().toString())
         val d: Int = if(device==0) {
             0x02
         }else{
@@ -65,7 +39,9 @@ class OnlineAtkActivity : AppCompatActivity() {
         var motor = (mode shl 7 and 0x80)
         motor = (motor or speed)
         val sendByte = byteArrayOf(d.toByte(), 0x01, motor.toByte())
-        sendValue("ctr ${sendByte.contentToString().replace(" ","")}")
+        if(chkCon()){
+            scMng.sendValue(socket!!,"ctr ${sendByte.contentToString().replace(" ","")}")
+        }
         indicator.progress=speed
         textRotationSpeed.text = String.format("Rotation Speed: %3d%%",speed)
     }
@@ -84,20 +60,23 @@ class OnlineAtkActivity : AppCompatActivity() {
         buttonExit = findViewById(R.id.button_exit2)
 
         seekbarMax.progress = 100
-        th = Thread{
+
+        Thread{
             connectToServer()
-        }
-        th!!.start()
+        }.start()
 
         while(true){
             if (chkCon()){
                 break
             }
         }
+        Thread{
+            exitHandler()
+        }.start()
         if(value!![4]=="None"){
-            sendValue("${value!![1]} ${value!![2]} ${value!![3]}")
+            scMng.sendValue(socket!!,"${value!![1]} ${value!![2]} ${value!![3]}")
         }else{
-            sendValue("${value!![1]} ${value!![2]} ${value!![3]} ${value!![4]}")
+            scMng.sendValue(socket!!,"${value!![1]} ${value!![2]} ${value!![3]} ${value!![4]}")
         }
 
         seekbarCtr.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -120,7 +99,6 @@ class OnlineAtkActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar) {}
         })
         buttonExit.setOnClickListener{
-            sendValue("exit")
             finish()
         }
     }
@@ -212,26 +190,32 @@ class OnlineAtkActivity : AppCompatActivity() {
     private fun connectToServer(): Array<String> {
         try {
             socket = Socket(address_ip, 19071)
-            val outputStream: OutputStream = socket!!.getOutputStream()
-            printWriter = PrintWriter(outputStream, true)
         } catch (e: IOException) {
             e.printStackTrace()
         }
         return arrayOf("Failed to connect to server")
     }
-    private fun sendValue(msg:String){
-        Thread{
-            printWriter?.println(msgMng.shapeMsg(msg))
-        }.start()
+    private fun exitHandler(){
+        while (true){
+            val msg = scMng.readValue(socket!!, BLOCKING)
+            if (msg.isNotEmpty()){
+                break
+            }
+        }
+        Handler(Looper.getMainLooper()).post{
+            Toast.makeText(this, "通信が切断されました", Toast.LENGTH_LONG).show()
+            finish()
+        }
     }
     private fun chkCon() :Boolean{
         return socket != null
     }
     override fun onDestroy() {
         super.onDestroy()
-        sendValue(msgMng.shapeMsg("exit"))
-        sendValue(msgMng.shapeMsg("quit"))
-        socket!!.close()
+        if(socket!=null){
+            scMng.sendValue(socket!!,"exit")
+            //socket!!.close()
+        }
         if(th!=null){
             th!!.interrupt()
         }

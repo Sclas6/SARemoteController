@@ -93,12 +93,14 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
                 }
                 //testText.text=buttonList.toString()
                 adapter.notifyDataSetChanged()
+                Toast.makeText(this, "ルームリストを更新しました", Toast.LENGTH_SHORT).show()
             }else{
                 Toast.makeText(this, "サーバへの接続に失敗しました", Toast.LENGTH_SHORT).show()
             }
         }
         buttonCreate.setOnClickListener{
-            if(bleService!=null&& bleService!!.getStatus()) {
+            //if(bleService!=null&& bleService!!.getStatus()) {
+            if(true){
                 val dialogView =
                     LayoutInflater.from(this).inflate(R.layout.dialog_create_layout, null)
                 val roomName = dialogView.findViewById<EditText>(R.id.roomName)
@@ -117,12 +119,6 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
                                 val message = chkCreate(roomName.text.toString())
                                 Handler(Looper.getMainLooper()).post {
                                     if (message[0] != "Failed to connect to server") {
-                                        Toast.makeText(
-                                            this,
-                                            message.toList().toString(),
-                                            Toast.LENGTH_SHORT
-                                        )
-                                            .show()
                                         if (message[0] == "ok") {
                                             val intent = Intent(this, OnlineDefActivity::class.java)
                                             val roomInfo: Array<String> = arrayOf(
@@ -130,11 +126,6 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
                                                 userName.text.toString(),
                                                 passWard.text.toString()
                                             )
-                                            Toast.makeText(
-                                                this,
-                                                roomInfo.contentToString(),
-                                                Toast.LENGTH_SHORT
-                                            ).show()
                                             intent.putExtra("command", roomInfo)
                                             startActivity(intent)
                                         } else {
@@ -173,8 +164,6 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
     }
     override fun onButtonClick(name: String) {
         val tokens = name.split(" ")
-        Toast.makeText(this, bleService?.getStatus().toString(), Toast.LENGTH_SHORT).show()
-        Toast.makeText(this, name, Toast.LENGTH_SHORT).show()
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_join_layout, null)
         val userName = dialogView.findViewById<EditText>(R.id.userName)
         userName.hint="Your Name"
@@ -192,8 +181,6 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
                     )
                     Handler(Looper.getMainLooper()).post {
                         if (message[0] != "Failed to connect to server") {
-                            Toast.makeText(this, message.toList().toString(), Toast.LENGTH_SHORT)
-                                .show()
                             if (message[0] == "ok") {
                                 val intent = Intent(this, OnlineAtkActivity::class.java)
                                 intent.putExtra("command", message)
