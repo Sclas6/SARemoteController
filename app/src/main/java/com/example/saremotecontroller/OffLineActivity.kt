@@ -132,23 +132,21 @@ class OffLineActivity : AppCompatActivity() {
                 val r = y*y+x*x
                 if(i%4==0){
                     if(r<circle) {
-                        //testButton.text = String.format("%s,%s", circle.toString(), r.toString())
                         val time = System.currentTimeMillis()
                         val distanceX = x - prevX
                         val distanceY = y - prevY
-                        if(i==0){
-                            Log.d(TAG,"Mode Change")
-                            mode = if(distanceX>=0){
-                                if(y>=0){
+                        if(i == 4){
+                            mode = if(x>=0){
+                                if(atan2(distanceY,distanceX)<0){
                                     MODE_RIGHT
                                 }else{
                                     MODE_LEFT
                                 }
                             }else{
-                                if(y>=0){
-                                    MODE_LEFT
-                                }else{
+                                if(atan2(distanceY,distanceX)>=0){
                                     MODE_RIGHT
+                                }else{
+                                    MODE_LEFT
                                 }
                             }
                         }

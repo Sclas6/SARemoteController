@@ -1,5 +1,7 @@
 package com.example.saremotecontroller
 
+import android.annotation.SuppressLint
+import android.graphics.PointF
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -11,8 +13,10 @@ import android.widget.ProgressBar
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.graphics.minus
 import java.io.IOException
 import java.net.Socket
+import kotlin.math.atan2
 import kotlin.math.sqrt
 
 class OnlineAtkActivity : AppCompatActivity() {
@@ -112,9 +116,11 @@ class OnlineAtkActivity : AppCompatActivity() {
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {}
 
+    @SuppressLint("SetTextI18n")
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         when (event?.action) {
             MotionEvent.ACTION_DOWN -> {
+                i = 0
                 sensor.getLocationOnScreen(location)
                 val cX = sensor.width/2
                 val cY = sensor.height/2
@@ -134,19 +140,18 @@ class OnlineAtkActivity : AppCompatActivity() {
                         val time = System.currentTimeMillis()
                         val distanceX = x - prevX
                         val distanceY = y - prevY
-                        if(i==0){
-                            //Log.d(TAG,"Mode Change")
-                            mode = if(distanceX>=0){
-                                if(y>=0){
+                        if(i == 4){
+                            mode = if(x>=0){
+                                if(atan2(distanceY,distanceX)<0){
                                     MODE_RIGHT
                                 }else{
                                     MODE_LEFT
                                 }
                             }else{
-                                if(y>=0){
-                                    MODE_LEFT
-                                }else{
+                                if(atan2(distanceY,distanceX)>=0){
                                     MODE_RIGHT
+                                }else{
+                                    MODE_LEFT
                                 }
                             }
                         }
