@@ -1,7 +1,6 @@
 package com.example.saremotecontroller
 
 import android.annotation.SuppressLint
-import android.graphics.PointF
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -13,8 +12,6 @@ import android.widget.ProgressBar
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.graphics.minus
-import java.io.IOException
 import java.net.Socket
 import kotlin.math.atan2
 import kotlin.math.sqrt
@@ -29,7 +26,6 @@ class OnlineAtkActivity : AppCompatActivity() {
     private lateinit var textRotationSpeed: TextView
     private lateinit var buttonExit: Button
 
-    private val scMng = SocketManager()
     private var value: Array<String>? = null
     private var th: Thread? = null
     private var socket: Socket? = null
@@ -65,9 +61,7 @@ class OnlineAtkActivity : AppCompatActivity() {
 
         seekbarMax.progress = 100
 
-        Thread{
-            connectToServer()
-        }.start()
+        socket = scMng.connectServer(address_ip, 19071, null)
 
         while(true){
             if (chkCon()){
@@ -157,7 +151,7 @@ class OnlineAtkActivity : AppCompatActivity() {
                         }
                         val distance =
                             sqrt((distanceX * distanceX).toDouble() + (distanceY * distanceY).toDouble())
-                        var speed = distance /100
+                        var speed = distance /75
                         speed *= when {
                             r < 5000 -> 0.9
                             r < 12000 -> 0.8
@@ -192,14 +186,7 @@ class OnlineAtkActivity : AppCompatActivity() {
         }
         return super.onTouchEvent(event) //※
     }
-    private fun connectToServer(): Array<String> {
-        try {
-            socket = Socket(address_ip, 19071)
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-        return arrayOf("Failed to connect to server")
-    }
+
     private fun exitHandler(){
         while (true){
             val msg = scMng.readValue(socket!!, BLOCKING)

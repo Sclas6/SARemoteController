@@ -1,6 +1,9 @@
+@file:Suppress("DEPRECATION")
+
 package com.example.saremotecontroller
 
 import android.Manifest
+import android.app.ProgressDialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.ComponentName
@@ -14,46 +17,46 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.SystemClock.sleep
 import android.provider.Settings
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
-import java.io.OutputStream
-import java.io.PrintWriter
-import java.net.InetSocketAddress
-import java.net.Socket
 
-private const val REQUEST_ENABLE_BT = 1
-private const val MY_REQUEST_CODE: Int = 2
 private var isGpsEnabled: Boolean = false
-
-internal var address_ip = "157.7.214.224"
-
 @Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
 
     private var bleService: BLEService? = null
-    private var msgMng: MsgManager = MsgManager()
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             Log.d(TAG,"Service connected")
             val binder = service as BLEService.MyServiceBinder
             bleService = binder.getService()
-            // BLEデバイスのスキャンを開始する
             bleService?.connectBLE()
             Log.d(TAG,bleService?.getStatus().toString())
+            val progressDialog = ProgressDialog(this@MainActivity)
+            progressDialog.isIndeterminate = true
+            progressDialog.setMessage("Searching...")
+            progressDialog.setCanceledOnTouchOutside(false)
+            progressDialog.show()
+            Thread{
+                while(true){
+                    if(bleService!!.getStatus()){
+                        progressDialog.cancel()
+                        break
+                    }
+                    sleep(2000)
+                }
+            }.start()
         }
 
         override fun onServiceDisconnected(className: ComponentName) {
         }
     }
-
     private lateinit var connectButton: Button
     private lateinit var offlineButton: Button
     private lateinit var bleSearchButton: Button
@@ -110,26 +113,18 @@ class MainActivity : AppCompatActivity() {
             }
         }
         bleSearchButton.setOnClickListener {
+            DEVICE = DEVICES[UFO_SA]
             val intent = Intent(this, BLEService::class.java)
             bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
         }
     }
     private fun connectToServer(): Array<String> {
-        try {
-            //val socket = Socket("192.168.11.23", 19071)
-            val socket = Socket()
-            socket.connect(InetSocketAddress(address_ip, 19071),5000)
-            val outputStream: OutputStream = socket.getOutputStream()
-            val printWriter = PrintWriter(outputStream, true)
-            printWriter.println(msgMng.shapeMsg("show"))
-            val inputStream = InputStreamReader(socket.getInputStream())
-            val bufferedReader = BufferedReader(inputStream)
-            val message = bufferedReader.readLine()
+        val socket = scMng.connectServer(address_ip, 19071, 5000)
+        if(socket != null){
+            scMng.sendValue(socket,"show")
+            val message = scMng.readValue(socket, BLOCKING)
             socket.close()
-            //Log.d("APP",message)
-            return msgMng.checkMsg(message)
-        } catch (e: IOException) {
-            e.printStackTrace()
+            return message
         }
         return arrayOf("Failed to connect to server")
     }

@@ -2,13 +2,11 @@ package com.example.saremotecontroller
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
-import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.ImageView
@@ -18,10 +16,6 @@ import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import kotlin.math.*
-
-
-const val MODE_RIGHT = 0
-const val MODE_LEFT = 1
 class OffLineActivity : AppCompatActivity() {
 
     private lateinit var seekbarCtr: SeekBar
@@ -44,17 +38,19 @@ class OffLineActivity : AppCompatActivity() {
         }
     }
 
-    fun sendCrl(speed:Int,mode:Int,device:Int){
-        val d: Int = if(device==0){
-            0x02
-        }else{
-            0x01
-        }
+    fun sendCrl(speed:Int,mode:Int){
         var motor = (mode shl 7 and 0x80)
         motor = (motor or speed)
-        val sendByte = byteArrayOf(d.toByte(), 0x01, motor.toByte())
-        if (bleService?.getStatus() != false) {
-            bleService?.writeValue(sendByte)
+        if(DEVICE == DEVICES[UFO_SA]){
+            val sendByte = byteArrayOf(0x02, 0x01, motor.toByte())
+            if (bleService?.getStatus() != false) {
+                bleService?.writeValue(sendByte)
+            }
+        }else if (DEVICE == DEVICES[UFO_TW]){
+            val sendByte = byteArrayOf(0x05, (motor xor 0x80).toByte(), motor.toByte())
+            if (bleService?.getStatus() != false) {
+                bleService?.writeValue(sendByte)
+            }
         }
         indicator.progress=speed
         textRotationSpeed.text = String.format("Rotation Speed: %3d%%",speed)
@@ -82,9 +78,9 @@ class OffLineActivity : AppCompatActivity() {
         seekbarCtr.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
                 if(i>=0){
-                    sendCrl(i,1,0)
+                    sendCrl(i,1)
                 }else{
-                    sendCrl(i*-1,0,0)
+                    sendCrl(i*-1,0)
                 }
             }
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
@@ -152,7 +148,7 @@ class OffLineActivity : AppCompatActivity() {
                         }
                         val distance =
                             sqrt((distanceX * distanceX).toDouble() + (distanceY * distanceY).toDouble())
-                        var speed = distance /100
+                        var speed = distance /75
                         speed *= when {
                             r < 5000 -> 0.9
                             r < 12000 -> 0.8
@@ -165,12 +161,12 @@ class OffLineActivity : AppCompatActivity() {
                         }
                         speed *= 0.6 * maxSpeed
                         if(speed>=1.0){speed=1.0}
-                        sendCrl((speed*100).toInt(),mode,0)
+                        sendCrl((speed*100).toInt(),mode)
                         prevX = x
                         prevY = y
                         prevTime = time
                     }else{
-                        sendCrl(0,0,0)
+                        sendCrl(0,0)
                     }
                 }
                 i++
@@ -178,11 +174,11 @@ class OffLineActivity : AppCompatActivity() {
             }
             MotionEvent.ACTION_UP ->{
                 i = 0
-                sendCrl(0,0,0)
+                sendCrl(0,0)
             }
             MotionEvent.ACTION_CANCEL ->{
                 i = 0
-                sendCrl(0,0,0)
+                sendCrl(0,0)
             }
         }
         return super.onTouchEvent(event) //※

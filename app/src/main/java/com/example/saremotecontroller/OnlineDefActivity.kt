@@ -34,8 +34,6 @@ class OnlineDefActivity : AppCompatActivity() {
     private lateinit var roomInfoText: TextView
     private var rotateSpeed = 0
 
-    private val scMng = SocketManager()
-
     private var bleService: BLEService? = null
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
@@ -109,7 +107,7 @@ class OnlineDefActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     private fun defLoop(name:String, user:String, pwd:String){
         try {
-            socket = Socket(address_ip, 19071)
+            socket = scMng.connectServer(address_ip, 19071, null)
             if(pwd == ""){
                 Log.d(ContentValues.TAG,String.format("create %s %s",name,user))
                 scMng.sendValue(socket!!,String.format("create %s %s",name,user))

@@ -5,15 +5,44 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStream
 import java.io.PrintWriter
+import java.net.InetSocketAddress
 import java.net.Socket
 
-const val BLOCKING = 0
-const val NONBLOCKING = 1
-
 class SocketManager {
-
-    private val msgMng = MsgManager()
-
+    fun connectServer(ip: String,port: Int, to: Int?): Socket?{
+        if(Looper.myLooper() != Looper.getMainLooper()){
+            return try{
+                if(to!=null){
+                    val sc = Socket()
+                    sc.connect(InetSocketAddress(ip, port), to)
+                    sc
+                }else{
+                    val sc = Socket(ip, port)
+                    sc
+                }
+            }catch (e: Exception){
+                null
+            }
+        }else{
+            var result: Socket? = null
+            val th = Thread{
+                try{
+                    result = if(to != null){
+                        val sc = Socket()
+                        sc.connect(InetSocketAddress(ip, port), to)
+                        sc
+                    }else{
+                        val sc = Socket(ip, port)
+                        sc
+                    }
+                }catch (_: Exception){
+                }
+            }
+            th.start()
+            th.join()
+            return result
+        }
+    }
     fun sendValue(sc: Socket, value: String){
         if(Looper.myLooper() != Looper.getMainLooper()){
             val outputStream: OutputStream = sc.getOutputStream()

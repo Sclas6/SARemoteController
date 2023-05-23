@@ -34,7 +34,6 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
     private lateinit var buttonCreate: Button
 
     private var bleService: BLEService? = null
-    private val msgMng = MsgManager()
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
@@ -46,7 +45,6 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
         }
     }
 
-
     @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,20 +54,15 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
 
         buttonUpdate = findViewById(R.id.buttonUpdate)
         buttonCreate = findViewById(R.id.buttonCreate)
-        //testText = findViewById(R.id.textView)
         buttonUpdate.text = "更新"
         val value = intent.getStringArrayExtra("roomList")
         var myDataList=value?.toMutableList()
-        //val buttonList = mutableListOf<ButtonData>(b1,b2,b3,b4)
         val buttonList= mutableListOf<ButtonData>()
-        //testText.text=myDataList.toString()
         if (myDataList != null) {
             for(i in 0 until myDataList.size step 3){
                 buttonList.add(ButtonData(myDataList[i],myDataList[i+1],myDataList[i+2].toInt()))
             }
         }
-
-        // ボタン用のデータクラスの動的な配列を設定
 
         recyclerView = findViewById(R.id.recycler_view)
         val layoutManager = LinearLayoutManager(this)
@@ -99,8 +92,7 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
             }
         }
         buttonCreate.setOnClickListener{
-            //if(bleService!=null&& bleService!!.getStatus()) {
-            if(true){
+            if(bleService!=null&& bleService!!.getStatus()) {
                 val dialogView =
                     LayoutInflater.from(this).inflate(R.layout.dialog_create_layout, null)
                 val roomName = dialogView.findViewById<EditText>(R.id.roomName)
@@ -114,7 +106,6 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
                     .setView(dialogView)
                     .setPositiveButton("OK") { _, _ ->
                         Thread {
-                            Log.d(TAG, "[CHK_CREATE] ${passWard.text}")
                             if (roomName.text.toString() != "" && userName.text.toString() != "") {
                                 val message = chkCreate(roomName.text.toString())
                                 Handler(Looper.getMainLooper()).post {
