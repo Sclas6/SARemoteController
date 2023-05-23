@@ -113,9 +113,9 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
                                         if (message[0] == "ok") {
                                             val intent = Intent(this, OnlineDefActivity::class.java)
                                             val roomInfo: Array<String> = arrayOf(
-                                                roomName.text.toString(),
-                                                userName.text.toString(),
-                                                passWard.text.toString()
+                                                roomName.text.toString().replace(" ","_"),
+                                                userName.text.toString().replace(" ","_"),
+                                                passWard.text.toString().replace(" ","_")
                                             )
                                             intent.putExtra("command", roomInfo)
                                             startActivity(intent)
@@ -167,8 +167,8 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
                 Thread {
                     val message = chkJoin(
                         tokens[0],
-                        userName.text.toString(),
-                        passWard.text.toString()
+                        userName.text.toString().replace(" ","_"),
+                        passWard.text.toString().replace(" ","_")
                     )
                     Handler(Looper.getMainLooper()).post {
                         if (message[0] != "Failed to connect to server") {
