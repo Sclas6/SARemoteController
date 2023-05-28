@@ -4,9 +4,11 @@ import android.os.Looper
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStream
+import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.nio.charset.StandardCharsets
 
 class SocketManager {
     fun connectServer(ip: String,port: Int, to: Int?): Socket?{
@@ -46,12 +48,12 @@ class SocketManager {
     fun sendValue(sc: Socket, value: String){
         if(Looper.myLooper() != Looper.getMainLooper()){
             val outputStream: OutputStream = sc.getOutputStream()
-            val printWriter = PrintWriter(outputStream, true)
+            val printWriter =  PrintWriter(OutputStreamWriter(outputStream, StandardCharsets.UTF_8), true)
             printWriter.println(msgMng.shapeMsg(value))
         }else{
             Thread{
                 val outputStream: OutputStream = sc.getOutputStream()
-                val printWriter = PrintWriter(outputStream, true)
+                val printWriter =  PrintWriter(OutputStreamWriter(outputStream, StandardCharsets.UTF_8), true)
                 printWriter.println(msgMng.shapeMsg(value))
             }.start()
         }
