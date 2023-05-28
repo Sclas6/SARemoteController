@@ -1,4 +1,4 @@
-package com.example.saremotecontroller
+package com.saremotecontroller
 
 const val address_ip = "157.7.214.224"
 

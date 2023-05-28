@@ -1,4 +1,4 @@
-package com.example.saremotecontroller
+package com.saremotecontroller
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
@@ -19,6 +19,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.saremotecontroller.R
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -199,10 +200,10 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
             val outputStream: OutputStream = socket.getOutputStream()
             val printWriter = PrintWriter(outputStream, true)
             if(pwd==""){
-                Log.d(TAG,msgMng.shapeMsg(String.format("chk_join %s %s",name,user)))
+                Log.d(TAG, msgMng.shapeMsg(String.format("chk_join %s %s",name,user)))
                 printWriter.println(msgMng.shapeMsg(String.format("chk_join %s %s",name,user)))
             }else{
-                Log.d(TAG,msgMng.shapeMsg(String.format("chk_join %s %s %s",name,user,pwd)))
+                Log.d(TAG, msgMng.shapeMsg(String.format("chk_join %s %s %s",name,user,pwd)))
                 printWriter.println(msgMng.shapeMsg(String.format("chk_join %s %s %s",name,user,pwd)))
             }
             val inputStream = InputStreamReader(socket.getInputStream())
@@ -221,7 +222,7 @@ class RoomList : AppCompatActivity(), ButtonAdapter.OnButtonClickListener {
             val socket = Socket(address_ip, 19071)
             val outputStream: OutputStream = socket.getOutputStream()
             val printWriter = PrintWriter(outputStream, true)
-            Log.d(TAG,msgMng.shapeMsg(String.format("chk_create %s",name)))
+            Log.d(TAG, msgMng.shapeMsg(String.format("chk_create %s",name)))
             printWriter.println(msgMng.shapeMsg(String.format("chk_create %s",name)))
             val inputStream = InputStreamReader(socket.getInputStream())
             val bufferedReader = BufferedReader(inputStream)

@@ -1,4 +1,4 @@
-package com.example.saremotecontroller
+package com.saremotecontroller
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.saremotecontroller.R
 
 data class ButtonData(
     val name: String,

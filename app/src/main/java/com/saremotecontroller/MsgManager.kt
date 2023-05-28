@@ -1,4 +1,4 @@
-package com.example.saremotecontroller
+package com.saremotecontroller
 class MsgManager {
     fun checkMsg(msg:String): Array<String>{
         try{

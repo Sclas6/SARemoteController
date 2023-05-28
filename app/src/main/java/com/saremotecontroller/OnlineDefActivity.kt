@@ -1,4 +1,4 @@
-package com.example.saremotecontroller
+package com.saremotecontroller
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
@@ -17,6 +17,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import com.example.saremotecontroller.R
 import java.io.IOException
 import java.lang.Exception
 import java.net.Socket

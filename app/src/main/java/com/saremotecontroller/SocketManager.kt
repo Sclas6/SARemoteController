@@ -1,4 +1,4 @@
-package com.example.saremotecontroller
+package com.saremotecontroller
 
 import android.os.Looper
 import java.io.BufferedReader

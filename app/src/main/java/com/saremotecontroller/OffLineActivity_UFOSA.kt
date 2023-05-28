@@ -1,22 +1,23 @@
-package com.example.saremotecontroller
+package com.saremotecontroller
 
 import android.annotation.SuppressLint
-import androidx.appcompat.app.AppCompatActivity
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.IBinder
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.SeekBar
+import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
-import android.widget.Toast
-import java.net.Socket
-import kotlin.math.atan2
-import kotlin.math.sqrt
-
-class OnlineAtkActivity : AppCompatActivity() {
+import androidx.appcompat.app.AppCompatActivity
+import com.example.saremotecontroller.R
+import kotlin.math.*
+class OffLineActivity : AppCompatActivity() {
 
     private lateinit var seekbarCtr: SeekBar
     private lateinit var seekbarMax: SeekBar
@@ -26,69 +27,67 @@ class OnlineAtkActivity : AppCompatActivity() {
     private lateinit var textRotationSpeed: TextView
     private lateinit var buttonExit: Button
 
-    private var value: Array<String>? = null
-    private var th: Thread? = null
-    private var socket: Socket? = null
+    private var bleService: BLEService? = null
 
-    fun sendCrl(speed:Int,mode:Int,device:Int){
-        val d: Int = if(device==0) {
-            0x02
-        }else{
-            0x01
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            val binder = service as BLEService.MyServiceBinder
+            bleService = binder.getService()
         }
+
+        override fun onServiceDisconnected(className: ComponentName) {
+        }
+    }
+
+    fun sendCrl(speed:Int,mode:Int){
         var motor = (mode shl 7 and 0x80)
         motor = (motor or speed)
-        val sendByte = byteArrayOf(d.toByte(), 0x01, motor.toByte())
-        if(chkCon()){
-            scMng.sendValue(socket!!,"ctr ${sendByte.contentToString().replace(" ","")}")
+        if(DEVICE == DEVICES[UFO_SA]){
+            val sendByte = byteArrayOf(0x02, 0x01, motor.toByte())
+            if (bleService?.getStatus() != false) {
+                bleService?.writeValue(sendByte)
+            }
+        }else if (DEVICE == DEVICES[UFO_TW]){
+            val sendByte = byteArrayOf(0x05, (motor xor 0x80).toByte(), motor.toByte())
+            if (bleService?.getStatus() != false) {
+                bleService?.writeValue(sendByte)
+            }
         }
         indicator.progress=speed
         textRotationSpeed.text = String.format("Rotation Speed: %3d%%",speed)
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        value = intent.getStringArrayExtra("command")
-        setContentView(R.layout.activity_online_atk)
+        setContentView(R.layout.activity_offline)
 
-        seekbarCtr = findViewById(R.id.rotationPower2)
-        seekbarMax = findViewById(R.id.maxSpeed2)
-        indicator = findViewById(R.id.progressBar2)
-        sensor = findViewById(R.id.imageView2)
-        textMaxSpeed = findViewById(R.id.textMaxSpeed2)
-        textRotationSpeed = findViewById(R.id.textSpeedCtr2)
-        buttonExit = findViewById(R.id.button_exit2)
+        val bleIntent = Intent(this, BLEService::class.java)
+        bindService(bleIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+
+        //testButton = findViewById(R.id.test_button)
+        seekbarCtr = findViewById(R.id.rotationPower)
+        seekbarMax = findViewById(R.id.maxSpeed)
+        indicator = findViewById(R.id.progressBar)
+        sensor = findViewById(R.id.imageView)
+        textMaxSpeed = findViewById(R.id.textMaxSpeed)
+        textRotationSpeed = findViewById(R.id.textSpeedCtr)
+        buttonExit = findViewById(R.id.button_exit)
 
         seekbarMax.progress = 100
 
-        socket = scMng.connectServer(address_ip, 19071, null)
-
-        while(true){
-            if (chkCon()){
-                break
-            }
-        }
-        Thread{
-            exitHandler()
-        }.start()
-        if(value!![4]=="None"){
-            scMng.sendValue(socket!!,"${value!![1]} ${value!![2]} ${value!![3]}")
-        }else{
-            scMng.sendValue(socket!!,"${value!![1]} ${value!![2]} ${value!![3]} ${value!![4]}")
-        }
-
-        seekbarCtr.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        seekbarCtr.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
                 if(i>=0){
-                    sendCrl(i,1,0)
+                    sendCrl(i,1)
                 }else{
-                    sendCrl(i*-1,0,0)
+                    sendCrl(i*-1,0)
                 }
             }
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
             override fun onStopTrackingTouch(seekBar: SeekBar) {}
         })
-        seekbarMax.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        seekbarMax.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
                 maxSpeed = i.toDouble()/100
                 textMaxSpeed.text = String.format("Max Speed: %3d%%",i)
@@ -110,16 +109,15 @@ class OnlineAtkActivity : AppCompatActivity() {
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {}
 
-    @SuppressLint("SetTextI18n")
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         when (event?.action) {
             MotionEvent.ACTION_DOWN -> {
-                i = 0
                 sensor.getLocationOnScreen(location)
                 val cX = sensor.width/2
                 val cY = sensor.height/2
                 prevX = event.x - location[0] - cX
                 prevY = cY - event.y + location[1]
+                //testButton.text= String.format("x: %d, y: %d",x,y)
             }
             MotionEvent.ACTION_MOVE ->{
                 sensor.getLocationOnScreen(location)
@@ -164,12 +162,12 @@ class OnlineAtkActivity : AppCompatActivity() {
                         }
                         speed *= 0.6 * maxSpeed
                         if(speed>=1.0){speed=1.0}
-                        sendCrl((speed*100).toInt(),mode,0)
+                        sendCrl((speed*100).toInt(),mode)
                         prevX = x
                         prevY = y
                         prevTime = time
                     }else{
-                        sendCrl(0,0,0)
+                        sendCrl(0,0)
                     }
                 }
                 i++
@@ -177,39 +175,13 @@ class OnlineAtkActivity : AppCompatActivity() {
             }
             MotionEvent.ACTION_UP ->{
                 i = 0
-                sendCrl(0,0,0)
+                sendCrl(0,0)
             }
             MotionEvent.ACTION_CANCEL ->{
                 i = 0
-                sendCrl(0,0,0)
+                sendCrl(0,0)
             }
         }
         return super.onTouchEvent(event) //※
-    }
-
-    private fun exitHandler(){
-        while (true){
-            val msg = scMng.readValue(socket!!, BLOCKING)
-            if (msg.isNotEmpty()){
-                break
-            }
-        }
-        Handler(Looper.getMainLooper()).post{
-            Toast.makeText(this, "通信が切断されました", Toast.LENGTH_LONG).show()
-            finish()
-        }
-    }
-    private fun chkCon() :Boolean{
-        return socket != null
-    }
-    override fun onDestroy() {
-        super.onDestroy()
-        if(socket!=null){
-            scMng.sendValue(socket!!,"exit")
-            //socket!!.close()
-        }
-        if(th!=null){
-            th!!.interrupt()
-        }
     }
 }

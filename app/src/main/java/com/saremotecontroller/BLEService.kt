@@ -1,4 +1,4 @@
-package com.example.saremotecontroller
+package com.saremotecontroller
 
 import android.Manifest
 import android.app.Service
@@ -64,9 +64,9 @@ class BLEService : Service() {
                 when (newState) {
                     BluetoothProfile.STATE_CONNECTED -> {
                         // デバイスに接続された場合の処理をここに記述
-                        connected=true
-                        saDevice=gatt.device
-                        bluetoothGatt=gatt
+                        connected =true
+                        saDevice =gatt.device
+                        bluetoothGatt =gatt
                         if (ActivityCompat.checkSelfPermission(
                                 this@BLEService,
                                 Manifest.permission.BLUETOOTH_CONNECT
@@ -79,7 +79,7 @@ class BLEService : Service() {
 
                     }
                     BluetoothProfile.STATE_DISCONNECTED -> {
-                        connected=false
+                        connected =false
                         if (ActivityCompat.checkSelfPermission(MainActivity(), Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
                         ) {
                             Log.d(TAG,"[Gatt Closed]")

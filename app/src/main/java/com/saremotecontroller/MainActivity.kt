@@ -1,6 +1,6 @@
 @file:Suppress("DEPRECATION")
 
-package com.example.saremotecontroller
+package com.saremotecontroller
 
 import android.Manifest
 import android.app.ProgressDialog
@@ -24,6 +24,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import com.example.saremotecontroller.R
 
 private var isGpsEnabled: Boolean = false
 @Suppress("DEPRECATION")

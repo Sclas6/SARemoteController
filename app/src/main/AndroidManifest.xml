@@ -22,22 +22,22 @@
         android:theme="@style/Theme.SARemoteController"
         tools:targetApi="31">
         <activity
-            android:name=".OnlineDefActivity"
+            android:name="com.saremotecontroller.OnlineDefActivity"
             android:exported="false" />
         <activity
-            android:name=".OnlineAtkActivity"
+            android:name="com.saremotecontroller.OnlineAtkActivity"
             android:exported="false" />
         <activity
-            android:name=".OffLineActivity"
+            android:name="com.saremotecontroller.OffLineActivity"
             android:exported="false" />
 
-        <service android:name=".BLEService" />
+        <service android:name="com.saremotecontroller.BLEService" />
 
         <activity
-            android:name=".RoomList"
+            android:name="com.saremotecontroller.RoomList"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name="com.saremotecontroller.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
